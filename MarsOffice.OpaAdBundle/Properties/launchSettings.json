@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MarsOffice.OpaAdBundle": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 8002"
+    }
+  }
+}
