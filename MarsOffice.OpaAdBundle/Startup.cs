@@ -1,8 +1,13 @@
 using System;
 using System.IO;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
+using Azure.Core;
+using Azure.Identity;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Graph;
 
 [assembly: FunctionsStartup(typeof(MarsOffice.OpaAdBundle.Startup))]
 namespace MarsOffice.OpaAdBundle
@@ -21,6 +26,37 @@ namespace MarsOffice.OpaAdBundle
 
         public override void Configure(IFunctionsHostBuilder builder)
         {
+            var config = builder.GetContext().Configuration;
+
+            builder.Services.AddTransient(_ =>
+            {
+                TokenCredential tokenCredential = null;
+                var envVar = Environment.GetEnvironmentVariable("AZURE_FUNCTIONS_ENVIRONMENT");
+                var isDevelopmentEnvironment = string.IsNullOrEmpty(envVar) || envVar.ToLower() == "development";
+
+                if (isDevelopmentEnvironment)
+                {
+                    tokenCredential = new AzureCliCredential();
+                }
+                else
+                {
+                    tokenCredential = new DefaultAzureCredential();
+                }
+
+                var accessToken = tokenCredential.GetToken(
+                    new TokenRequestContext(scopes: new string[] { "https://graph.microsoft.com/.default" }),
+                    cancellationToken: System.Threading.CancellationToken.None
+                );
+                var graphServiceClient = new GraphServiceClient(
+                    new DelegateAuthenticationProvider((requestMessage) =>
+                {
+                    requestMessage
+                        .Headers
+                        .Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
+                    return Task.CompletedTask;
+                }));
+                return graphServiceClient;
+            });
         }
     }
 }
