@@ -11,4 +11,8 @@
 
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="MarsOffice.Dto" Version="3.0.1" />
+  </ItemGroup>
+
 </Project>
