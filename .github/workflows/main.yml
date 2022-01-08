@@ -1,4 +1,4 @@
-name: marsoffice-ad-bundle
+name: marsoffice-opa-ad-bundle
 on:
   push:
     branches: [develop, master]
