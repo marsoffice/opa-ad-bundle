@@ -137,6 +137,10 @@ namespace MarsOffice.Opa.AdBundle
                 }
             }
 
+            var rootGroups = groups.Where(x => x.ParentId == null).ToList();
+            foreach (var rg in rootGroups) {
+                SetGroupFullIdsRec(rg, groups);
+            }
 
             return new OkObjectResult(new AdBundleDto
             {
@@ -144,6 +148,16 @@ namespace MarsOffice.Opa.AdBundle
                 Groups = groups,
                 Users = users
             });
+        }
+
+        private void SetGroupFullIdsRec(GroupDto group, IEnumerable<GroupDto> allGroups, string prefix = "") {
+            group.FullId = prefix + "_" + group.Id;
+            if (group.ChildrenIds != null && group.ChildrenIds.Any()) {
+                var foundChildren = allGroups.Where(x => group.ChildrenIds.Contains(x.Id)).ToList();
+                foreach (var child in foundChildren) {
+                    SetGroupFullIdsRec(child, allGroups, group.FullId);
+                }
+            }
         }
     }
 }
